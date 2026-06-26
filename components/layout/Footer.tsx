@@ -42,7 +42,7 @@ export function Footer() {
         </div>
         <div className="mt-8 flex flex-col items-center justify-between gap-4 border-t border-border pt-8 sm:flex-row">
           <p className="text-sm text-muted-foreground">© 2026 TaskForge. Built for the developer community.</p>
-          <a href="https://github.com" className="flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground">
+          <a href="https://github.com/GregorySchimmel/taskforge" className="flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground">
             <ExternalLink className="h-4 w-4" /> GitHub
           </a>
         </div>

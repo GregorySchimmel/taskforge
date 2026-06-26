@@ -4,9 +4,12 @@
 
 TaskForge helps junior developers turn completed work into verifiable proof that leads to real jobs and income.
 
+**Repository:** https://github.com/GregorySchimmel/taskforge
+
 ## Quick Start
 
 ```bash
+git clone https://github.com/GregorySchimmel/taskforge.git
 cd taskforge
 npm install
 npm run dev
