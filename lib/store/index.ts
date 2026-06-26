@@ -7,11 +7,16 @@ import {
   calculateTaskPoints,
   calculateVarietyBonus,
 } from "@/lib/points";
+import {
+  createActiveSubscription,
+  createTrialSubscription,
+} from "@/lib/subscription";
 import type {
   AppState,
   Notification,
   Project,
   Submission,
+  TalentDiscipline,
   Task,
   TaskDifficulty,
   TaskType,
@@ -23,6 +28,32 @@ import type {
 const STORAGE_KEY = "taskforge-state";
 const AUTH_KEY = "taskforge-auth";
 const ROLE_KEY = "taskforge-active-role";
+
+function migrateRole(role: string): UserRole {
+  if (role === "junior") return "talent";
+  if (role === "hirer") return "employer";
+  return role as UserRole;
+}
+
+function migrateUser(user: User): User {
+  const role = migrateRole(user.role as string);
+  const portfolioUrl =
+    user.portfolioUrl ??
+    (user.github ? `https://github.com/${user.github}` : "");
+  return {
+    ...user,
+    role,
+    portfolioUrl,
+    github: user.github ?? portfolioUrl.replace("https://github.com/", ""),
+  };
+}
+
+function migrateState(state: AppState): AppState {
+  return {
+    ...state,
+    users: state.users.map(migrateUser),
+  };
+}
 
 function generateId(prefix: string): string {
   return `${prefix}-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
@@ -36,7 +67,7 @@ export function loadState(): AppState {
   if (typeof window === "undefined") return deepClone(SEED_STATE);
   try {
     const stored = localStorage.getItem(STORAGE_KEY);
-    if (stored) return JSON.parse(stored) as AppState;
+    if (stored) return migrateState(JSON.parse(stored) as AppState);
   } catch {
     /* use seed */
   }
@@ -52,7 +83,7 @@ export function loadAuthUser(): User | null {
   if (typeof window === "undefined") return null;
   try {
     const stored = localStorage.getItem(AUTH_KEY);
-    if (stored) return JSON.parse(stored) as User;
+    if (stored) return migrateUser(JSON.parse(stored) as User);
   } catch {
     /* ignore */
   }
@@ -66,9 +97,9 @@ export function saveAuthUser(user: User | null): void {
 }
 
 export function loadActiveRole(user: User | null): UserRole {
-  if (typeof window === "undefined") return user?.role ?? "junior";
-  const stored = localStorage.getItem(ROLE_KEY) as UserRole | null;
-  return stored ?? user?.role ?? "junior";
+  if (typeof window === "undefined") return user?.role ?? "talent";
+  const stored = localStorage.getItem(ROLE_KEY);
+  return migrateRole(stored ?? user?.role ?? "talent");
 }
 
 export function saveActiveRole(role: UserRole): void {
@@ -322,19 +353,35 @@ export function signUpUser(
     name: string;
     email: string;
     role: UserRole;
-    github: string;
+    portfolioUrl: string;
     skills: string[];
+    disciplines?: TalentDiscipline[];
+    companyName?: string;
   }
 ): { state: AppState; user: User } {
   const next = deepClone(state);
-  const username = data.github.toLowerCase().replace(/[^a-z0-9]/g, "-");
+  const slug = data.portfolioUrl
+    .replace(/https?:\/\//, "")
+    .split("/")
+    .filter(Boolean)
+    .pop() ?? data.name;
+  const username = slug.toLowerCase().replace(/[^a-z0-9]/g, "-");
   const user: User = {
     id: generateId("user"),
     username,
     name: data.name,
     email: data.email,
     role: data.role,
-    github: data.github,
+    portfolioUrl: data.portfolioUrl.startsWith("http")
+      ? data.portfolioUrl
+      : `https://github.com/${data.portfolioUrl}`,
+    github: data.portfolioUrl.startsWith("http")
+      ? undefined
+      : data.portfolioUrl,
+    disciplines: data.disciplines,
+    companyName: data.companyName,
+    subscription:
+      data.role === "employer" ? createTrialSubscription() : undefined,
     avatar: `https://api.dicebear.com/7.x/avataaars/svg?seed=${username}`,
     skills: data.skills,
     joinedAt: new Date().toISOString(),
@@ -350,15 +397,33 @@ export function signUpUser(
   return { state: next, user };
 }
 
+export function subscribeEmployer(
+  state: AppState,
+  userId: string,
+  plan: "starter" | "pro"
+): AppState {
+  const next = deepClone(state);
+  const user = next.users.find((u) => u.id === userId);
+  if (!user || user.role !== "employer") return state;
+  user.subscription = createActiveSubscription(plan);
+  if (loadAuthUser()?.id === userId) saveAuthUser(user);
+  return next;
+}
+
 export function loginAsDemo(
   state: AppState,
-  role: UserRole
+  role: UserRole,
+  variant?: "with_sub" | "no_sub"
 ): { state: AppState; user: User } | null {
-  const user = state.users.find(
-    (u) => u.role === role && (role === "hirer" ? u.id === "hirer-1" : u.id === "dev-1")
-  );
+  const id =
+    role === "employer"
+      ? variant === "no_sub"
+        ? "hirer-2"
+        : "hirer-1"
+      : "dev-1";
+  const user = state.users.find((u) => u.id === id);
   if (!user) return null;
-  return { state, user: deepClone(user) };
+  return { state, user: deepClone(migrateUser(user)) };
 }
 
 export function updateUserSkills(
@@ -387,7 +452,7 @@ export function markNotificationsRead(
 
 export function getLeaderboard(state: AppState) {
   return state.users
-    .filter((u) => u.role === "junior")
+    .filter((u) => u.role === "talent")
     .sort((a, b) => b.stats.totalPoints - a.stats.totalPoints)
     .map((u, i) => ({ ...u, rank: i + 1 }));
 }

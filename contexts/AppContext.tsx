@@ -11,6 +11,7 @@ import {
 } from "react";
 import { toast } from "sonner";
 import { DEMO_USERS } from "@/data/seed";
+import { hasTalentDiscoveryAccess } from "@/lib/subscription";
 import {
   claimTask,
   createProject,
@@ -27,12 +28,14 @@ import {
   saveAuthUser,
   saveState,
   signUpUser,
+  subscribeEmployer,
   submitTask,
   updateUserSkills,
 } from "@/lib/store";
 import type {
   AppState,
   Project,
+  TalentDiscipline,
   TaskDifficulty,
   TaskType,
   User,
@@ -46,16 +49,20 @@ interface AppContextValue {
   isLoading: boolean;
   techTags: string[];
   leaderboard: ReturnType<typeof getLeaderboard>;
+  canDiscoverTalent: boolean;
   setActiveRole: (role: UserRole) => void;
   signUp: (data: {
     name: string;
     email: string;
     role: UserRole;
-    github: string;
+    portfolioUrl: string;
     skills: string[];
+    disciplines?: TalentDiscipline[];
+    companyName?: string;
   }) => void;
-  loginDemo: (role: UserRole) => void;
+  loginDemo: (role: UserRole, variant?: "with_sub" | "no_sub") => void;
   logout: () => void;
+  subscribe: (plan: "starter" | "pro") => void;
   claimTaskById: (taskId: string) => boolean;
   submitTaskWork: (
     taskId: string,
@@ -96,7 +103,7 @@ const AppContext = createContext<AppContextValue | null>(null);
 export function AppProvider({ children }: { children: ReactNode }) {
   const [state, setState] = useState<AppState | null>(null);
   const [user, setUser] = useState<User | null>(null);
-  const [activeRole, setActiveRoleState] = useState<UserRole>("junior");
+  const [activeRole, setActiveRoleState] = useState<UserRole>("talent");
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -126,24 +133,46 @@ export function AppProvider({ children }: { children: ReactNode }) {
       setUser(newUser);
       saveAuthUser(newUser);
       setActiveRole(newUser.role);
-      toast.success(`Welcome to TaskForge, ${newUser.name}!`);
+      const trialNote =
+        newUser.role === "employer" ? " Your 7-day talent discovery trial has started." : "";
+      toast.success(`Welcome to TaskForge, ${newUser.name}!${trialNote}`);
     },
     [state, persist, setActiveRole]
   );
 
   const loginDemo = useCallback(
-    (role: UserRole) => {
+    (role: UserRole, variant?: "with_sub" | "no_sub") => {
       if (!state) return;
-      const demoUser = role === "hirer" ? DEMO_USERS.hirer : DEMO_USERS.junior;
-      const result = loginAsDemo(state, role);
+      const demoUser =
+        role === "employer"
+          ? variant === "no_sub"
+            ? DEMO_USERS.employerNoSub
+            : DEMO_USERS.employer
+          : DEMO_USERS.talent;
+      const result = loginAsDemo(state, role, variant);
       if (result) {
         setUser(result.user);
         saveAuthUser(result.user);
         setActiveRole(role);
-        toast.success(`Logged in as ${demoUser.name} (${role})`);
+        toast.success(`Logged in as ${demoUser.name}`);
       }
     },
     [state, setActiveRole]
+  );
+
+  const subscribe = useCallback(
+    (plan: "starter" | "pro") => {
+      if (!state || !user) return;
+      const next = subscribeEmployer(state, user.id, plan);
+      persist(next);
+      const updated = next.users.find((u) => u.id === user.id);
+      if (updated) {
+        setUser(updated);
+        saveAuthUser(updated);
+      }
+      toast.success(`${plan === "pro" ? "Pro" : "Starter"} plan activated!`);
+    },
+    [state, user, persist]
   );
 
   const logout = useCallback(() => {
@@ -202,7 +231,6 @@ export function AppProvider({ children }: { children: ReactNode }) {
         toast.error("Could not process review");
         return false;
       }
-      const submission = next.submissions.find((s) => s.id === submissionId);
       const updatedUser = next.users.find((u) => u.id === user.id);
       persist(next);
       if (updatedUser && updatedUser.id === user.id) {
@@ -210,7 +238,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         saveAuthUser(updatedUser);
       }
       if (approved) {
-        toast.success("Submission approved! Dev stats updated.");
+        toast.success("Submission approved! Talent stats updated.");
       } else {
         toast.info("Submission sent back for revision.");
       }
@@ -264,6 +292,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
     return state.notifications.filter((n) => n.userId === user.id);
   }, [state, user]);
 
+  const canDiscoverTalent = hasTalentDiscoveryAccess(user, activeRole);
+
   const value = useMemo<AppContextValue | null>(() => {
     if (!state) return null;
     return {
@@ -273,10 +303,12 @@ export function AppProvider({ children }: { children: ReactNode }) {
       isLoading,
       techTags: getAllTechTags(state),
       leaderboard: getLeaderboard(state),
+      canDiscoverTalent,
       setActiveRole,
       signUp,
       loginDemo,
       logout,
+      subscribe,
       claimTaskById,
       submitTaskWork,
       reviewTaskSubmission,
@@ -291,10 +323,12 @@ export function AppProvider({ children }: { children: ReactNode }) {
     user,
     activeRole,
     isLoading,
+    canDiscoverTalent,
     setActiveRole,
     signUp,
     loginDemo,
     logout,
+    subscribe,
     claimTaskById,
     submitTaskWork,
     reviewTaskSubmission,

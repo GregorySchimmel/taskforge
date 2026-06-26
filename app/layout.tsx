@@ -4,6 +4,7 @@ import { Toaster } from "sonner";
 import { AppProvider } from "@/contexts/AppContext";
 import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
+import { SubscriptionBanner } from "@/components/employer/SubscriptionBanner";
 import "./globals.css";
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-geist-sans" });
@@ -19,6 +20,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body className={`${inter.variable} font-sans min-h-screen flex flex-col`}>
         <AppProvider>
           <Header />
+          <SubscriptionBanner />
           <main className="flex-1">{children}</main>
           <Footer />
           <Toaster theme="dark" position="bottom-right" richColors />

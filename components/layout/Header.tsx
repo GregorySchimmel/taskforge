@@ -18,11 +18,12 @@ import { AuthModal } from "@/components/auth/AuthModal";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { cn } from "@/lib/utils";
+import type { UserRole } from "@/types";
 
 export function Header() {
   const { user, activeRole, setActiveRole, logout, getUserNotifications, markAllNotificationsRead } = useApp();
   const [authOpen, setAuthOpen] = useState(false);
-  const [authRole, setAuthRole] = useState<"junior" | "hirer">("junior");
+  const [authRole, setAuthRole] = useState<UserRole>("talent");
   const [mobileOpen, setMobileOpen] = useState(false);
   const [notifOpen, setNotifOpen] = useState(false);
 
@@ -33,10 +34,10 @@ export function Header() {
     { href: "/tasks", label: "Tasks", icon: Anvil },
     { href: "/leaderboard", label: "Leaderboard", icon: Trophy },
     { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
-    ...(activeRole === "hirer" ? [{ href: "/post", label: "Post Task", icon: Plus }] : []),
+    ...(activeRole === "employer" ? [{ href: "/post", label: "Post Task", icon: Plus }] : []),
   ];
 
-  const openAuth = (role: "junior" | "hirer") => {
+  const openAuth = (role: UserRole) => {
     setAuthRole(role);
     setAuthOpen(true);
   };
@@ -71,23 +72,23 @@ export function Header() {
                 <div className="hidden sm:flex items-center rounded-lg border border-border bg-secondary/50 p-0.5">
                   <button
                     type="button"
-                    onClick={() => setActiveRole("junior")}
+                    onClick={() => setActiveRole("talent")}
                     className={cn(
                       "rounded-md px-3 py-1.5 text-xs font-medium transition-colors",
-                      activeRole === "junior" ? "bg-indigo-600 text-white" : "text-muted-foreground hover:text-foreground"
+                      activeRole === "talent" ? "bg-indigo-600 text-white" : "text-muted-foreground hover:text-foreground"
                     )}
                   >
-                    Junior Dev
+                    Talent
                   </button>
                   <button
                     type="button"
-                    onClick={() => setActiveRole("hirer")}
+                    onClick={() => setActiveRole("employer")}
                     className={cn(
                       "rounded-md px-3 py-1.5 text-xs font-medium transition-colors",
-                      activeRole === "hirer" ? "bg-violet-600 text-white" : "text-muted-foreground hover:text-foreground"
+                      activeRole === "employer" ? "bg-violet-600 text-white" : "text-muted-foreground hover:text-foreground"
                     )}
                   >
-                    Hirer
+                    Employer
                   </button>
                 </div>
 
@@ -155,11 +156,11 @@ export function Header() {
 
             {!user && (
               <div className="hidden sm:flex items-center gap-2">
-                <Button variant="outline" size="sm" onClick={() => openAuth("junior")}>
-                  Join as Dev
+                <Button variant="outline" size="sm" onClick={() => openAuth("talent")}>
+                  For Talent
                 </Button>
-                <Button size="sm" onClick={() => openAuth("hirer")}>
-                  Post Tasks
+                <Button size="sm" onClick={() => openAuth("employer")}>
+                  For Employers
                 </Button>
               </div>
             )}
@@ -200,11 +201,11 @@ export function Header() {
                 </>
               ) : (
                 <>
-                  <Button variant="outline" className="mt-2" onClick={() => { openAuth("junior"); setMobileOpen(false); }}>
-                    Join as Dev
+                  <Button variant="outline" className="mt-2" onClick={() => { openAuth("talent"); setMobileOpen(false); }}>
+                    For Talent
                   </Button>
-                  <Button className="mt-2" onClick={() => { openAuth("hirer"); setMobileOpen(false); }}>
-                    Post Tasks
+                  <Button className="mt-2" onClick={() => { openAuth("employer"); setMobileOpen(false); }}>
+                    For Employers
                   </Button>
                 </>
               )}

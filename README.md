@@ -21,34 +21,39 @@ No database or API keys required — the MVP uses seeded data with localStorage 
 
 ## Demo Walkthrough
 
-1. **Browse tasks** — Visit `/tasks` to see the kanban-style Task Type Board with 28 seeded tasks.
-2. **Login as Junior Dev** — Click "Join as Dev" → "Continue as Demo Developer" (logs in as Alex Rivera).
-3. **Claim tasks** — Click any open task card → "Claim this task".
-4. **Submit work** — Go to `/tasks/[id]` → fill in GitHub link, notes, time spent → Submit for Review.
-5. **Switch to Hirer** — Use the role switcher in the header → "Hirer".
-6. **Review submissions** — Log in as Demo Hirer (Sarah Chen) or stay logged in and switch roles. Visit the task detail page → Approve with rating and feedback.
-7. **See updates** — Check `/leaderboard`, `/devs/alex-rivera`, and `/dashboard` for updated stats and verified completions.
+1. **Browse tasks** — Visit `/tasks` to see the kanban board (dev, web design, video editing columns).
+2. **Sign up as Talent** — "For Talent" → pick disciplines (Development, Web Design, Video Editing) → create account.
+3. **Or demo login** — "Continue as Demo Talent" (Alex Rivera) or "Demo Employer" (Sarah Chen, has subscription).
+4. **Claim & submit** — Claim a task, submit proof on the task detail page.
+5. **Switch to Employer** — Header role switcher → review and approve submissions (always free).
+6. **Talent discovery paywall** — Log in as "Demo Employer (no subscription)" to see the paywall on `/leaderboard` and `/devs/[username]`.
+7. **Subscribe** — Visit `/employer/subscribe` to simulate Stripe checkout and unlock talent browsing.
 
-### Role Switcher
+### Account Types
 
-The header role switcher lets one person demo both Junior Dev and Hirer flows without logging out. Switch freely between views.
+| Type | Signup | Access |
+|------|--------|--------|
+| **Talent** | For Talent + discipline picker | Full platform, build verified portfolio |
+| **Employer** | For Employers + 7-day trial | Post/review tasks free · Subscribe to browse talent |
 
 ### Demo Accounts
 
-| Role | Name | Username |
-|------|------|----------|
-| Junior Dev | Alex Rivera | `alex-rivera` |
-| Hirer | Sarah Chen | `sarah-chen` |
+| Role | Name | Username | Subscription |
+|------|------|----------|--------------|
+| Talent | Alex Rivera | `alex-rivera` | — |
+| Employer | Sarah Chen | `sarah-chen` | Pro (active) |
+| Employer | Marcus Webb | `marcus-webb` | Expired (paywall demo) |
 
 ## Features
 
-- Landing page with hero, how-it-works, benefits, testimonials
-- Task Type Board (10 kanban columns) with search/filters
+- **For Talent / For Employers** signup with discipline picker (dev, web design, video editing)
+- Task Type Board (12 kanban columns) with search/filters
 - Task claim → submit → review → verify flow
-- Role-based dashboard (dev stats + hirer review queue)
-- Leaderboard with points, badges, hire CTA
-- Public dev profiles with verified completions
-- Post project + tasks (hirer) with mock AI task suggestions
+- Role-based dashboard (talent stats + employer review queue)
+- **Employer subscription** — trial + paywall on leaderboard/profiles (posting tasks stays free)
+- Leaderboard with points, badges, discipline tags, hire CTA
+- Public talent profiles with verified completions
+- Post project + tasks (employer) with mock AI task suggestions
 - In-app notifications, achievement badges, 10% platform fee display
 
 ## Tech Stack

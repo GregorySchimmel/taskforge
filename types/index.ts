@@ -1,4 +1,5 @@
-export type UserRole = "junior" | "hirer";
+export type UserRole = "talent" | "employer";
+export type TalentDiscipline = "development" | "web_design" | "video_editing";
 export type TaskType =
   | "frontend"
   | "backend"
@@ -9,6 +10,8 @@ export type TaskType =
   | "bugfix"
   | "feature"
   | "uiux"
+  | "web_design"
+  | "video_editing"
   | "other";
 export type TaskDifficulty = "easy" | "medium" | "hard";
 export type TaskStatus =
@@ -19,13 +22,25 @@ export type TaskStatus =
   | "verified";
 export type SubmissionStatus = "pending" | "approved" | "rejected";
 
+export interface EmployerSubscription {
+  status: "trial" | "active" | "expired";
+  plan: "starter" | "pro" | null;
+  expiresAt: string;
+}
+
 export interface User {
   id: string;
   username: string;
   name: string;
   email: string;
   role: UserRole;
-  github: string;
+  /** Primary portfolio link or GitHub profile */
+  portfolioUrl: string;
+  /** @deprecated use portfolioUrl — kept for backward compat */
+  github?: string;
+  disciplines?: TalentDiscipline[];
+  companyName?: string;
+  subscription?: EmployerSubscription;
   avatar?: string;
   bio?: string;
   skills: string[];
@@ -137,6 +152,8 @@ export const TASK_TYPES: { value: TaskType; label: string }[] = [
   { value: "bugfix", label: "Bug Fixes" },
   { value: "feature", label: "Feature Development" },
   { value: "uiux", label: "UI/UX" },
+  { value: "web_design", label: "Web Design" },
+  { value: "video_editing", label: "Video Editing" },
   { value: "other", label: "Other" },
 ];
 

@@ -91,12 +91,12 @@ export function TaskModal({
           )}
 
           <div className="flex gap-3 pt-2">
-            {activeRole === "junior" && task.status === "open" && (
+            {activeRole === "talent" && task.status === "open" && (
               <Button onClick={onClaim} className="flex-1">
                 {user ? "Claim this task" : "Login to claim"}
               </Button>
             )}
-            {isOwner && activeRole === "hirer" && (
+            {isOwner && activeRole === "employer" && (
               <Link href={`/tasks/${task.id}`} className="flex-1" onClick={() => onOpenChange(false)}>
                 <Button variant="secondary" className="w-full">View Submissions</Button>
               </Link>

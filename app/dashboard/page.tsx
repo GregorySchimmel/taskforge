@@ -34,7 +34,7 @@ export default function DashboardPage() {
     );
   }
 
-  if (activeRole === "junior") {
+  if (activeRole === "talent") {
     const myTasks = state.tasks.filter((t) => t.claimedBy === user.id);
     const columns = [
       { label: "Claimed", status: "claimed" as const },
@@ -106,7 +106,7 @@ export default function DashboardPage() {
     );
   }
 
-  // Hirer view
+  // Employer view
   const myProjects = state.projects.filter((p) => p.hirerId === user.id);
   const myTasks = state.tasks.filter((t) => t.hirerId === user.id);
   const pendingReviews = state.submissions.filter(
@@ -117,7 +117,7 @@ export default function DashboardPage() {
     <div className="mx-auto max-w-6xl px-4 py-8 sm:px-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold">Hirer Dashboard</h1>
+          <h1 className="text-2xl font-bold">Employer Dashboard</h1>
           <p className="text-sm text-muted-foreground">Manage projects and review submissions</p>
         </div>
         <Link href="/post"><Button className="gap-1"><Plus className="h-4 w-4" /> Post New Task</Button></Link>

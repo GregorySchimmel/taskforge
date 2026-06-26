@@ -54,17 +54,17 @@ export default function PostPage() {
 
   const { fields, append, remove } = useFieldArray({ control, name: "tasks" });
 
-  if (!user || activeRole !== "hirer") {
+  if (!user || activeRole !== "employer") {
     return (
       <div className="mx-auto max-w-lg px-4 py-20 text-center">
         <h1 className="text-2xl font-bold">Post a Project</h1>
         <p className="mt-2 text-muted-foreground">
-          {!user ? "Log in as a hirer to post tasks." : "Switch to Hirer view in the header to post tasks."}
+          {!user ? "Log in as an employer to post tasks." : "Switch to Employer view in the header to post tasks."}
         </p>
         <Button className="mt-6" onClick={() => setAuthOpen(true)}>
-          {!user ? "Login as Hirer" : "Switch to Hirer View"}
+          {!user ? "Login as Employer" : "Switch to Employer View"}
         </Button>
-        <AuthModal open={authOpen} onOpenChange={setAuthOpen} defaultRole="hirer" />
+        <AuthModal open={authOpen} onOpenChange={setAuthOpen} defaultRole="employer" />
       </div>
     );
   }
@@ -123,7 +123,7 @@ export default function PostPage() {
   return (
     <div className="mx-auto max-w-3xl px-4 py-8 sm:px-6">
       <h1 className="text-2xl font-bold">Post a Project</h1>
-      <p className="text-sm text-muted-foreground">Create a project and break it into tasks for junior developers.</p>
+      <p className="text-sm text-muted-foreground">Create a project and break it into tasks for developers, designers, and creators.</p>
 
       <form onSubmit={handleSubmit(onSubmit)} className="mt-8 space-y-6">
         <Card className="border-border/50">

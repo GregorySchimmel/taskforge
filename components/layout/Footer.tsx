@@ -26,14 +26,14 @@ export function Footer() {
             </ul>
           </div>
           <div>
-            <h4 className="font-semibold text-sm">For Devs</h4>
+            <h4 className="font-semibold text-sm">For Talent</h4>
             <ul className="mt-3 space-y-2 text-sm text-muted-foreground">
               <li><Link href="/tasks" className="hover:text-foreground">Browse Tasks</Link></li>
               <li><Link href="/leaderboard" className="hover:text-foreground">Top Developers</Link></li>
             </ul>
           </div>
           <div>
-            <h4 className="font-semibold text-sm">For Hirers</h4>
+            <h4 className="font-semibold text-sm">For Employers</h4>
             <ul className="mt-3 space-y-2 text-sm text-muted-foreground">
               <li><Link href="/post" className="hover:text-foreground">Post a Project</Link></li>
               <li><Link href="/leaderboard" className="hover:text-foreground">Find Talent</Link></li>

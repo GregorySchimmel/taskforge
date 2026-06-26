@@ -96,7 +96,7 @@ export default function TaskDetailPage() {
         </CardContent>
       </Card>
 
-      {activeRole === "junior" && task.status === "open" && (
+      {activeRole === "talent" && task.status === "open" && (
         <Button
           className="mt-6 w-full"
           onClick={() => user ? claimTaskById(task.id) : setAuthOpen(true)}
@@ -105,7 +105,7 @@ export default function TaskDetailPage() {
         </Button>
       )}
 
-      {isClaimer && activeRole === "junior" && (task.status === "claimed" || task.status === "submitted") && (
+      {isClaimer && activeRole === "talent" && (task.status === "claimed" || task.status === "submitted") && (
         <Card className="mt-6 border-indigo-500/20">
           <CardHeader>
             <CardTitle className="text-lg">Submit Completion</CardTitle>
@@ -120,7 +120,7 @@ export default function TaskDetailPage() {
         </Card>
       )}
 
-      {isOwner && activeRole === "hirer" && submissions.length > 0 && (
+      {isOwner && activeRole === "employer" && submissions.length > 0 && (
         <div className="mt-6 space-y-4">
           <h2 className="text-lg font-semibold">Submissions ({submissions.length})</h2>
           {submissions.map((sub) => (
@@ -135,11 +135,11 @@ export default function TaskDetailPage() {
         </div>
       )}
 
-      {isOwner && activeRole === "hirer" && submissions.length === 0 && task.status !== "open" && (
+      {isOwner && activeRole === "employer" && submissions.length === 0 && task.status !== "open" && (
         <p className="mt-6 text-sm text-muted-foreground">No submissions yet. Waiting for the developer to submit work.</p>
       )}
 
-      <AuthModal open={authOpen} onOpenChange={setAuthOpen} defaultRole="junior" />
+      <AuthModal open={authOpen} onOpenChange={setAuthOpen} defaultRole="talent" />
     </div>
   );
 }

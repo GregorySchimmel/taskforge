@@ -4,7 +4,9 @@ import { useState } from "react";
 import { useParams } from "next/navigation";
 import { ExternalLink, MapPin, Star, Mail } from "lucide-react";
 import { useApp } from "@/contexts/AppContext";
+import { TalentPaywall } from "@/components/employer/TalentPaywall";
 import { getBadgesForDev } from "@/lib/badges";
+import { getDisciplineLabel } from "@/lib/disciplines";
 import { formatCurrency, formatDate } from "@/lib/utils";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
@@ -13,9 +15,16 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
+function getTalentTitle(dev: { disciplines?: string[]; skills: string[] }): string {
+  if (dev.disciplines?.includes("video_editing")) return "Video Editor";
+  if (dev.disciplines?.includes("web_design")) return "Web Designer";
+  if (dev.disciplines?.includes("development")) return `${dev.skills[0] ?? "Software"} Developer`;
+  return dev.skills[0] ?? "Creative Professional";
+}
+
 export default function DevProfilePage() {
   const { username } = useParams<{ username: string }>();
-  const { getUserByUsername, state, user, updateSkills } = useApp();
+  const { getUserByUsername, state, user, updateSkills, canDiscoverTalent } = useApp();
   const [editingSkills, setEditingSkills] = useState(false);
   const [skillsInput, setSkillsInput] = useState("");
   const [contactOpen, setContactOpen] = useState(false);
@@ -24,12 +33,14 @@ export default function DevProfilePage() {
   if (!dev) {
     return (
       <div className="mx-auto max-w-3xl px-4 py-20 text-center">
-        <h1 className="text-2xl font-bold">Developer not found</h1>
+        <h1 className="text-2xl font-bold">Profile not found</h1>
       </div>
     );
   }
 
   const isOwner = user?.id === dev.id;
+  const showPaywall = !isOwner && !canDiscoverTalent;
+
   const completions = state.verifiedCompletions.filter((c) => c.devId === dev.id);
   const badges = getBadgesForDev(completions);
 
@@ -39,8 +50,8 @@ export default function DevProfilePage() {
     setEditingSkills(false);
   };
 
-  return (
-    <div className="mx-auto max-w-4xl px-4 py-8 sm:px-6">
+  const profileContent = (
+    <>
       <div className="relative overflow-hidden rounded-xl border border-border bg-gradient-to-br from-indigo-500/10 via-card to-violet-500/10 p-8">
         <div className="flex flex-col items-center gap-6 sm:flex-row sm:items-start">
           <Avatar className="h-24 w-24">
@@ -49,10 +60,17 @@ export default function DevProfilePage() {
           </Avatar>
           <div className="flex-1 text-center sm:text-left">
             <h1 className="text-2xl font-bold">{dev.name}</h1>
-            <p className="text-muted-foreground">Junior {dev.skills[0] ?? "Developer"}</p>
+            <p className="text-muted-foreground">{getTalentTitle(dev)}</p>
+            {dev.disciplines && dev.disciplines.length > 0 && (
+              <div className="mt-2 flex flex-wrap justify-center gap-1 sm:justify-start">
+                {dev.disciplines.map((d) => (
+                  <Badge key={d} variant="secondary" className="text-xs">{getDisciplineLabel(d)}</Badge>
+                ))}
+              </div>
+            )}
             <div className="mt-2 flex flex-wrap items-center justify-center gap-3 text-sm text-muted-foreground sm:justify-start">
-              <a href={`https://github.com/${dev.github}`} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1 hover:text-foreground">
-                <ExternalLink className="h-3 w-3" /> @{dev.github}
+              <a href={dev.portfolioUrl} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1 hover:text-foreground">
+                <ExternalLink className="h-3 w-3" /> Portfolio
               </a>
               {dev.location && (
                 <span className="flex items-center gap-1"><MapPin className="h-3 w-3" /> {dev.location}</span>
@@ -61,7 +79,7 @@ export default function DevProfilePage() {
             </div>
             {dev.bio && <p className="mt-3 text-sm">{dev.bio}</p>}
           </div>
-          {!isOwner && (
+          {!isOwner && canDiscoverTalent && (
             <Button variant="outline" className="gap-1" onClick={() => setContactOpen(true)}>
               <Mail className="h-4 w-4" /> Contact for opportunities
             </Button>
@@ -94,7 +112,7 @@ export default function DevProfilePage() {
         </div>
         {editingSkills ? (
           <div className="mt-2 flex gap-2">
-            <Input value={skillsInput} onChange={(e) => setSkillsInput(e.target.value)} placeholder="React, TypeScript, Node.js" />
+            <Input value={skillsInput} onChange={(e) => setSkillsInput(e.target.value)} placeholder="React, Figma, Premiere Pro" />
             <Button size="sm" onClick={handleSaveSkills}>Save</Button>
             <Button size="sm" variant="ghost" onClick={() => setEditingSkills(false)}>Cancel</Button>
           </div>
@@ -136,7 +154,7 @@ export default function DevProfilePage() {
                 <p className="mt-2 text-sm text-muted-foreground italic">&ldquo;{vc.feedback}&rdquo;</p>
                 <div className="mt-3 flex items-center justify-between text-xs">
                   <div className="flex gap-2">
-                    <a href={vc.githubLink} target="_blank" rel="noopener noreferrer" className="text-indigo-400 hover:underline">GitHub</a>
+                    <a href={vc.githubLink} target="_blank" rel="noopener noreferrer" className="text-indigo-400 hover:underline">Proof</a>
                     {vc.demoLink && (
                       <a href={vc.demoLink} target="_blank" rel="noopener noreferrer" className="text-indigo-400 hover:underline">Demo</a>
                     )}
@@ -151,18 +169,39 @@ export default function DevProfilePage() {
           ))}
         </div>
       )}
+    </>
+  );
+
+  return (
+    <div className="mx-auto max-w-4xl px-4 py-8 sm:px-6">
+      {showPaywall ? (
+        <TalentPaywall>
+          <div className="rounded-xl border border-border p-8">
+            <div className="flex items-center gap-4">
+              <Avatar className="h-16 w-16">
+                <AvatarImage src={dev.avatar} alt={dev.name} />
+                <AvatarFallback>{dev.name[0]}</AvatarFallback>
+              </Avatar>
+              <div>
+                <h1 className="text-xl font-bold">{dev.name}</h1>
+                <p className="text-muted-foreground">{getTalentTitle(dev)}</p>
+                <p className="text-sm text-muted-foreground">{dev.stats.tasksCompleted} verified tasks · {dev.stats.totalPoints} pts</p>
+              </div>
+            </div>
+          </div>
+        </TalentPaywall>
+      ) : (
+        profileContent
+      )}
 
       <Dialog open={contactOpen} onOpenChange={setContactOpen}>
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Contact {dev.name}</DialogTitle>
           </DialogHeader>
-          <p className="text-sm text-muted-foreground">
-            Simulated contact flow. In production, integrate email or in-app messaging.
-          </p>
           <div className="rounded-lg border border-border bg-secondary/30 p-4 text-sm">
             <p><strong>Email:</strong> {dev.email}</p>
-            <p><strong>GitHub:</strong> github.com/{dev.github}</p>
+            <p><strong>Portfolio:</strong> {dev.portfolioUrl}</p>
           </div>
           <Button onClick={() => setContactOpen(false)}>Close</Button>
         </DialogContent>

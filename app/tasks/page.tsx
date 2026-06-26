@@ -87,7 +87,7 @@ export default function TasksPage() {
         onOpenChange={setModalOpen}
         onClaim={handleClaim}
       />
-      <AuthModal open={authOpen} onOpenChange={setAuthOpen} defaultRole="junior" />
+      <AuthModal open={authOpen} onOpenChange={setAuthOpen} defaultRole="talent" />
     </div>
   );
 }
